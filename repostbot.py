@@ -4,11 +4,12 @@
 # -- Imports --
 
 import praw
-
+import pickle
+from difflib import SequenceMatcher
+from time import sleep
 
 # -- Setup Variables --
 r = praw.Reddit('repostBot')
-stemmer = PorterStemmer()
 responses = []
 
 with open('ids.pickle', 'rb') as handle:
@@ -27,6 +28,11 @@ with open('ids.pickle', 'rb') as handle:
 #         models = {}
 
 # -- Methods --
+
+# Check if two strings are similar
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
+
 def repost(lim, rate, subs, ml=False):
     searchReddit(lim, rate, subs, ml)
 
@@ -75,18 +81,54 @@ def searchReddit(lim, rate, subs, ml):
 def searchSub(sub, lim, ml):
     # global models
     subreddit = r.subreddit(sub)
-    subWords = [pair[0] for pair in languages[sub].most_common(10000)]
     for submission in subreddit.hot(limit=lim):
-        ids.append(sub.id)
+        ids.append(submission.id)
+        subTitle = submission.title
+        try:
+            subText = submission.selftext
+            subURL = None
+        except AttributeError:
+            subText = None
+            subURL = submission.url
+
+        # Check if the text of the string is long enough to make a comparison.
+        if subText:
+            if len(subText) < 100:
+                continue
+
+        results = r.subreddit(sub).search(subTitle)
+        for result in results:
+            # Only check submissions that were submitted before what is being
+            # searched.
+            if result.id == submission.id:
+                continue
+            elif result.created >= submission.created:
+                continue
+            elif subURL:
+                try:
+                    if result.URL == subURL:
+                        reply(submission, original, ml)
+                        break
+                except AttributeError:
+                    continue
+            elif subText:
+                try:
+                    if similar(result.selftext, subText) > 0.95:
+                        reply(submission, result, ml)
+                        break
+                except AttributeError:
+                    continue
 
 # Reply to a comment with a word definition.
-def reply(sub, word, ml, info=None):
+def reply(sub, original, ml, info=None):
     global responses
-    print("Found Submission:" + sub.id)
-    reply = ""
+    print("Found Submission:", sub.id, sub.title)
+    reply = "I have detected that this is a repost. The original post can"
+    reply += " be found [here](" + original.url + ")."
+    reply += "\n\n---------\n\nI am a bot. Please contact /u/liortulip with"
+    reply += " any questions or concerns."
     try:
-        cID = com.reply(reply)
-
+        cID = sub.reply(reply)
         # if ml:
         #     info["time"] = datetime.now()
         #     info["cID"] = cID
@@ -98,4 +140,4 @@ def reply(sub, word, ml, info=None):
             pickle.dump(ids, handle, protocol=pickle.HIGHEST_PROTOCOL)
         sleep(600)
 
-repost(50, 10, ["test"], ml=True)
+repost(50, 10, ["test"])
