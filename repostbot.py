@@ -82,6 +82,8 @@ def searchSub(sub, lim, ml):
     # global models
     subreddit = r.subreddit(sub)
     for submission in subreddit.hot(limit=lim):
+        if submission.id in ids:
+            continue
         ids.append(submission.id)
         subTitle = submission.title
         try:
