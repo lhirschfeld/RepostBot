@@ -127,8 +127,9 @@ def reply(sub, original, ml, info=None):
     print("Found Submission:", sub.id, sub.title)
     reply = "I have detected that this is a repost. The original post can"
     reply += " be found [here](" + original.url + ")."
-    reply += "\n\n---------\n\nI am a bot. Please contact /u/liortulip with"
-    reply += " any questions or concerns."
+    reply += "\n\n---------\n\n^I ^am ^a ^bot. ^Check ^out ^my ^[code](https://github.com/lhirschfeld/RepostBot)
+    reply += " ^Please ^contact ^/u/liortulip ^with"
+    reply += " ^any ^questions ^or ^concerns."
     try:
         cID = sub.reply(reply)
         # if ml:
