@@ -102,9 +102,14 @@ def searchSub(sub, lim, ml):
         for result in results:
             # Only check submissions that were submitted before what is being
             # searched.
+            # TODO: Figure out how to best approach the problem - very similar
+            # post from three months ago, slighly less similar post from a
+            # year ago.
             if result.id == submission.id:
                 continue
             elif result.created >= submission.created:
+                continue
+            elif similar(result.title, subTitle) < .7:
                 continue
             elif subURL:
                 try:
@@ -125,9 +130,10 @@ def searchSub(sub, lim, ml):
 def reply(sub, original, ml, info=None):
     global responses
     print("Found Submission:", sub.id, sub.title)
-    reply = "I have detected that this is a repost. The original post can"
+    reply = "Beep boop. I am the repost police bot. "
+    reply += "I have detected that this is a repost. The original post can"
     reply += " be found [here](" + original.url + ")."
-    reply += "\n\n---------\n\n^I ^am ^a ^bot. ^Check ^out ^my ^[code](https://github.com/lhirschfeld/RepostBot)
+    reply += "\n\n---------\n\n^Check ^out ^my ^[code](https://github.com/lhirschfeld/RepostBot)
     reply += " ^Please ^contact ^/u/liortulip ^with"
     reply += " ^any ^questions ^or ^concerns."
     try:
