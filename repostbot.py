@@ -2,30 +2,15 @@
 # RepostBot
 
 # -- Imports --
-
 import praw
-import pickle
+
+from custombot import RedditBot
 from difflib import SequenceMatcher
 from time import sleep
-
+from sklearn import linear_model
 # -- Setup Variables --
-r = praw.Reddit('repostBot')
+repostBot = RedditBot('repostBot')
 responses = []
-
-with open('ids.pickle', 'rb') as handle:
-    try:
-        ids = pickle.load(handle)
-    except EOFError:
-        ids = []
-
-# # Model Takes: [Word Popularity, Word Length, Comment Length]
-# # Models is a dictionary with a touple at each key containing:
-# # (linear regression, randomness rate)
-# with open('models.pickle', 'rb') as handle:
-#     try:
-#         models = pickle.load(handle)
-#     except EOFError:
-#         models = {}
 
 # -- Methods --
 
@@ -41,51 +26,21 @@ def searchReddit(lim, rate, subs, ml):
     while True:
         for sub in subs:
             searchSub(sub, lim, ml)
-        with open('ids.pickle', 'wb') as handle:
-            pickle.dump(ids, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        repostBot.updateIds()
 
-        # if ml:
-        #     updateModels()
+        if ml:
+            repostBot.updateModels()
         sleep(rate)
-
-# # Update the machine learning model and save it.
-# def updateModels():
-#     global responses, models
-#     currentTime = datetime.now()
-#     oldResponses = [(currentTime - r["time"]).total_seconds() > 3600
-#                              for r in responses]
-#     responses = [(currentTime - r["time"]).total_seconds() < 3600
-#                              for r in responses]
-#     for r in oldResponses:
-#         result = 0
-#         url = "https://reddit.com/" + r["sID"] + "?comment=" + r["cID"]
-#         submission = reddit.get_submission(url=url)
-#         comment_queue = submission.comments[:]
-#         if comment_queue:
-#             com = comment_queue.pop(0)
-#             result += com.score
-#             comment_queue.extend(com.replies)
-#         while comment_queue:
-#             com = comment_queue.pop(0)
-#             text = TextBlob(com.text)
-#             result += text.sentiment.polarity * com.score
-#         models[r["sub"]][0].fit([[r["popularity"], r["wLength"], r["cLength"]]],
-#                               [result])
-#
-#         # Update odds of random choice
-#         models[r]["sub"][1] *= 0.96
-#     with open('models.pickle', 'wb') as handle:
-#         pickle.dump(models, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 # Search a sub for words that need to be defined, and define them.
 def searchSub(sub, lim, ml):
-    # global models
-    subreddit = r.subreddit(sub)
+    subreddit = repostBot.r.subreddit(sub)
     for submission in subreddit.hot(limit=lim):
-        if submission.id in ids:
+        if submission.id in repostBot.ids:
             continue
-        ids.append(submission.id)
+        repostBot.ids.append(submission.id)
         subTitle = submission.title
+        print(subTitle)
         try:
             subText = submission.selftext
             subURL = None
@@ -98,7 +53,7 @@ def searchSub(sub, lim, ml):
             if len(subText) < 100:
                 continue
 
-        results = r.subreddit(sub).search(subTitle)
+        results = repostBot.r.subreddit(sub).search(subTitle)
         for result in results:
             # Only check submissions that were submitted before what is being
             # searched.
@@ -109,8 +64,6 @@ def searchSub(sub, lim, ml):
                 continue
             elif result.created >= submission.created:
                 continue
-            elif similar(result.title, subTitle) < .7:
-                continue
             elif subURL:
                 try:
                     if result.URL == subURL:
@@ -120,33 +73,51 @@ def searchSub(sub, lim, ml):
                     continue
             elif subText:
                 try:
-                    if similar(result.selftext, subText) > 0.95:
-                        reply(submission, result, ml)
-                        break
+                    titleSim = similar(result.title, subTitle)
+                    textSim = similar(result.selftext, subText)
                 except AttributeError:
                     continue
+                    if ml:
+                        # If ML, after basic checks, predict using the model
+                        # to decide whether to reply.
+                        if sub not in jargonBot.models:
+                            jargonBot.models[sub] = (linear_model.LogisticRegression(), 1)
+                            jargonBot.models[sub][0].fit([[1, 1, 1000]], [1])
+
+                        info = {"titleSim": titleSim, "textSim": textSim,
+                        "cLength": len(subText), "sID": submission.id, "sub": sub}
+
+                        if random.random() < jargonBot.models[sub][1]:
+                            reply(com, word, ml, info=info)
+                        elif jargonBot.models[sub][0].predict([[titleSim,
+                                textSim, info["cLength"]]]) > 0.8:
+                                reply(com, word, ml, info=info)
+
+                    elif similar(result.selftext, subText) > 0.95:
+                        reply(submission, result, ml)
+                        break
 
 # Reply to a comment with a word definition.
 def reply(sub, original, ml, info=None):
-    global responses
     print("Found Submission:", sub.id, sub.title)
     reply = "Beep boop. I am the repost police bot. "
     reply += "I have detected that this is a repost. The original post can"
     reply += " be found [here](" + original.url + ")."
-    reply += "\n\n---------\n\n^Check ^out ^my ^[code](https://github.com/lhirschfeld/RepostBot)
+    reply += "\n\n---------\n\n^Check ^out ^my ^[code](https://github.com/lhirschfeld/RepostBot)"
     reply += " ^Please ^contact ^/u/liortulip ^with"
     reply += " ^any ^questions ^or ^concerns."
     try:
         cID = sub.reply(reply)
-        # if ml:
-        #     info["time"] = datetime.now()
-        #     info["cID"] = cID
-        #     responses.append(info)
+
+        if ml:
+            info["time"] = datetime.now()
+            info["cID"] = cID
+            repostBot.responses.append(info)
+
         print("Replied")
     except praw.exceptions.APIException as error:
         print("Hit rate limit error.")
-        with open('ids.pickle', 'wb') as handle:
-            pickle.dump(ids, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        repostBot.updateIds()
         sleep(600)
 
-repost(50, 10, ["test"])
+repost(50, 10, ["funny"])
