@@ -30,12 +30,19 @@ class RedditBot:
         with open('ids.pickle', 'wb') as handle:
             pickle.dump(self.ids, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+    def createModel(sub, fit):
+        new_model = linear_model.LinearRegression()
+        new_model.fit(fit[0], fit[1])
+        self.models["sub"] = (new_model, 1, fit[0], fit[1])
+        with open('models.pickle', 'wb') as handle:
+            pickle.dump(self.models, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
     def updateModels(self, modelParams):
         # Model params is a list of strings which contains the keys in
         # each result which should be used to update the model.
 
         # Models is a dictionary with a touple at each key containing:
-        # (linear regression, randomness rate)
+        # (linear regression, randomness rate, x fits, y fits)
         currentTime = datetime.now()
         oldResponses = [(currentTime - r["time"]).total_seconds() > 3600
                                  for r in self.responses]
@@ -63,10 +70,11 @@ class RedditBot:
             for key in modelParams:
                 x.append(r[key])
 
-            # TODO: Modify fitting so that the model actually remembers its
-            # old information.
+            # Get old fits
+            x_fits = self.models[r["sub"]][2].append(x)
+            y_fits = self.models[r["sub"]][3].append(result)
 
-            self.models[r["sub"]][0].fit([x], [result])
+            self.models[r["sub"]][0].fit(x_fits, y_fits)
 
             # Update odds of random choice
             self.models[r]["sub"][1] *= 0.96

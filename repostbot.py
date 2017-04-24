@@ -8,6 +8,7 @@ from custombot import RedditBot
 from difflib import SequenceMatcher
 from time import sleep
 from sklearn import linear_model
+from math import exp
 # -- Setup Variables --
 repostBot = RedditBot('repostBot')
 responses = []
@@ -81,16 +82,19 @@ def searchSub(sub, lim, ml):
                         # If ML, after basic checks, predict using the model
                         # to decide whether to reply.
                         if sub not in jargonBot.models:
-                            jargonBot.models[sub] = (linear_model.LogisticRegression(), 1)
-                            jargonBot.models[sub][0].fit([[1, 1, 1000]], [1])
+                            jargonBot.createModel(sub, ([[1, 1, 1000]], [60]))
 
                         info = {"titleSim": titleSim, "textSim": textSim,
                         "cLength": len(subText), "sID": submission.id, "sub": sub}
 
+                        prediction = jargonBot.models[sub][0].predict([[titleSim,
+                                textSim, info["cLength"]]])
+                        info["prediction"] = prediction
+
                         if random.random() < jargonBot.models[sub][1]:
                             reply(com, word, ml, info=info)
                         elif jargonBot.models[sub][0].predict([[titleSim,
-                                textSim, info["cLength"]]]) > 0.8:
+                                textSim, info["cLength"]]]) > 10:
                                 reply(com, word, ml, info=info)
 
                     elif similar(result.selftext, subText) > 0.95:
@@ -101,8 +105,15 @@ def searchSub(sub, lim, ml):
 def reply(sub, original, ml, info=None):
     print("Found Submission:", sub.id, sub.title)
     reply = "Beep boop. I am the repost police bot. "
-    reply += "I have detected that this is a repost. The original post can"
+    reply += "I have detected"
+
+    if ml and "prediction" in info:
+        certainty = 1.0 / 1 + exp((10 - info["prediction"])/10)
+        reply += ", with " + certainty * 100 + "% certainty,"
+
+    reply += " that this is a repost. The original post can"
     reply += " be found [here](" + original.url + ")."
+
     reply += "\n\n---------\n\n^Check ^out ^my ^[code](https://github.com/lhirschfeld/RepostBot)"
     reply += " ^Please ^contact ^/u/liortulip ^with"
     reply += " ^any ^questions ^or ^concerns."
