@@ -95,7 +95,7 @@ def searchSub(sub, lim, ml):
                                 textSim, info["cLength"]]]) > 10:
                                 reply(com, word, ml, info=info)
 
-                    elif similar(result.selftext, subText) > 0.95:
+                    elif similar(result.selftext, subText) > 0.8:
                         reply(submission, result, ml)
                         break
 
@@ -130,7 +130,5 @@ def reply(sub, original, ml, info=None):
         sleep(600)
 
 while True:
-    for i in range(10):
-        repost(50, 10, ["funny", "pics", "jokes"])
-    for i in range(10):
-        repost(50, 10, ["funny", "pics", "jokes"], ml=True)
+    repost(50, 10, ["funny", "pics", "jokes"])
+    repost(50, 10, ["funny", "pics", "jokes"], ml=True)
