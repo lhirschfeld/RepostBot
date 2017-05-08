@@ -132,3 +132,4 @@ def reply(sub, original, ml, info=None):
 while True:
     repost(50, 10, ["funny", "pics", "jokes"])
     repost(50, 10, ["funny", "pics", "jokes"], ml=True)
+    print("Completed loop")
