@@ -103,8 +103,7 @@ def searchSub(sub, lim, ml):
 # Reply to a comment with a word definition.
 def reply(sub, original, ml, info=None):
     print("Found Submission:", sub.id, sub.title)
-    reply = "Beep boop. I am the repost police bot. "
-    reply += "I have detected"
+    reply = "I have detected"
 
     if ml and "prediction" in info:
         certainty = 1.0 / 1 + exp((10 - info["prediction"])/10)
@@ -112,8 +111,9 @@ def reply(sub, original, ml, info=None):
 
     reply += " that this is a repost. The original post can"
     reply += " be found [here](" + original.url + ")."
-
-    reply += "\n\n---------\n\n^Check ^out ^my ^[code](https://github.com/lhirschfeld/RepostBot)"
+    if ml:
+            reply += """\n\nI am a bot which attempts to find reposts automatically. I use machine learning to do this, and I can use your feedback to improve. Feel free to leave a comment to let me know what you thought!"""
+    reply += "\n\n---------\n\n^Check ^out ^my ^[code](https://github.com/lhirschfeld/RepostBot). "
     reply += " ^Please ^contact ^/u/liortulip ^with"
     reply += " ^any ^questions ^or ^concerns."
     try:
