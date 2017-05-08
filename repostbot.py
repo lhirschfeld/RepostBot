@@ -79,19 +79,19 @@ def searchSub(sub, lim, ml):
                     if ml:
                         # If ML, after basic checks, predict using the model
                         # to decide whether to reply.
-                        if sub not in jargonBot.models:
-                            jargonBot.createModel(sub, ([[1, 1, 1000]], [60]))
+                        if sub not in repostBot.models:
+                            repostBot.createModel(sub, ([[1, 1, 1000]], [60]))
 
                         info = {"titleSim": titleSim, "textSim": textSim,
                         "cLength": len(subText), "sID": submission.id, "sub": sub}
 
-                        prediction = jargonBot.models[sub][0].predict([[titleSim,
+                        prediction = repostBot.models[sub][0].predict([[titleSim,
                                 textSim, info["cLength"]]])
                         info["prediction"] = prediction
 
-                        if random.random() < jargonBot.models[sub][1]:
+                        if random.random() < repostBot.models[sub][1]:
                             reply(com, word, ml, info=info)
-                        elif jargonBot.models[sub][0].predict([[titleSim,
+                        elif repostBot.models[sub][0].predict([[titleSim,
                                 textSim, info["cLength"]]]) > 10:
                                 reply(com, word, ml, info=info)
 
