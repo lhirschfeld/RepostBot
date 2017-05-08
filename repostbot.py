@@ -80,7 +80,7 @@ def searchSub(sub, lim, ml):
                         # If ML, after basic checks, predict using the model
                         # to decide whether to reply.
                         if sub not in repostBot.models:
-                            repostBot.createModel(sub, ([[1, 1, 1000]], [60]))
+                            repostBot.createModel(sub, [[[1, 1, 1000]], [60]])
 
                         info = {"titleSim": titleSim, "textSim": textSim,
                         "cLength": len(subText), "sID": submission.id, "sub": sub}
