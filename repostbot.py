@@ -40,7 +40,6 @@ def searchSub(sub, lim, ml):
             continue
         repostBot.ids.append(submission.id)
         subTitle = submission.title
-        print(subTitle)
         try:
             subText = submission.selftext
             subURL = None
