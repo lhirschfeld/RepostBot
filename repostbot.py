@@ -29,7 +29,7 @@ def searchReddit(lim, rate, subs, ml):
         repostBot.updateIds()
 
         if ml:
-            repostBot.updateModels()
+            repostBot.updateModels(["titleSim", "textSim", "cLength"])
         sleep(rate)
 
 # Search a sub for words that need to be defined, and define them.
