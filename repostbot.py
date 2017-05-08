@@ -24,7 +24,6 @@ def repost(lim, rate, subs, ml=False):
 
 # Search Reddit for words that need to be defined, and define them.
 def searchReddit(lim, rate, subs, ml):
-    while True:
         for sub in subs:
             searchSub(sub, lim, ml)
         repostBot.updateIds()
@@ -131,4 +130,8 @@ def reply(sub, original, ml, info=None):
         repostBot.updateIds()
         sleep(600)
 
-repost(50, 10, ["funny"])
+while True:
+    for i in range(10):
+        repost(50, 10, ["funny", "pics", "jokes"])
+    for i in range(10):
+        repost(50, 10, ["funny", "pics", "jokes"], ml=True)

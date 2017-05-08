@@ -30,10 +30,11 @@ class RedditBot:
         with open('ids.pickle', 'wb') as handle:
             pickle.dump(self.ids, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def createModel(sub, fit):
+    def createModel(sub, init_fit):
         new_model = linear_model.LinearRegression()
-        new_model.fit(fit[0], fit[1])
-        self.models["sub"] = (new_model, 1, fit[0], fit[1])
+        new_model.fit(init_fit[0], init_fit[1])
+        # TODO: Create sub class that stores this data.
+        self.models[sub] = (new_model, 1, init_fit[0], init_fit[1])
         with open('models.pickle', 'wb') as handle:
             pickle.dump(self.models, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
