@@ -30,7 +30,7 @@ class RedditBot:
         with open('ids.pickle', 'wb') as handle:
             pickle.dump(self.ids, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def createModel(sub, init_fit):
+    def createModel(self, sub, init_fit):
         new_model = linear_model.LinearRegression()
         new_model.fit(init_fit[0], init_fit[1])
         # TODO: Create sub class that stores this data.
@@ -45,15 +45,13 @@ class RedditBot:
         # Models is a dictionary with a touple at each key containing:
         # (linear regression, randomness rate, x fits, y fits)
         currentTime = datetime.now()
-        oldResponses = [(currentTime - r["time"]).total_seconds() > 3600
-                                 for r in self.responses]
-        self.responses = [(currentTime - r["time"]).total_seconds() < 3600
-                                 for r in self.responses]
+        oldResponses = [r for r in self.responses if (currentTime - r["time"]).total_seconds() > 3600]
+        self.responses = [r for r in self.responses if (currentTime - r["time"]).total_seconds() <= 3600]
 
         for r in oldResponses:
             result = 0
-            url = "https://reddit.com/" + r["sID"] + "?comment=" + r["cID"]
-            submission = self.r.get_submission(url=url)
+            url = "https://reddit.com/" + str(r["sID"]) + "?comment=" + str(r["cID"])
+            submission = self.r.submission(url=url)
             comment_queue = submission.comments[:]
 
             if comment_queue:
@@ -74,7 +72,7 @@ class RedditBot:
             # Get old fits
             x_fits = self.models[r["sub"]][2].append(x)
             y_fits = self.models[r["sub"]][3].append(result)
-
+            print(x_fits, y_fits)
             self.models[r["sub"]][0].fit(x_fits, y_fits)
 
             # Update odds of random choice
