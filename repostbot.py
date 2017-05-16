@@ -138,6 +138,5 @@ def reply(sub, original, ml, info=None):
         sleep(600)
 
 while True:
-    repost(50, 10, ["funny", "pics", "jokes"], ml=True)
-    repost(50, 10, ["funny", "pics", "jokes"])
-    print("Completed loop")
+    repost(50, 10, ["funny", "pics", "jokes", "todayilearned", "videos", "aww", "gifs"], ml=True)
+    repost(50, 10, ["funny", "pics", "jokes", "todayilearned", "videos", "aww", "gifs"], ml=True)

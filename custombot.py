@@ -61,8 +61,11 @@ class RedditBot:
 
             while comment_queue:
                 com = comment_queue.pop(0)
-                text = TextBlob(com.text)
-                result += text.sentiment.polarity * com.score
+                try:
+                    text = TextBlob(com.text)
+                    result += text.sentiment.polarity * com.score
+                except AttributeError:
+                    continue
 
             x = []
 
