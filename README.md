@@ -9,5 +9,5 @@ Running this script requires the following prerequisites:
 The aim of this bot is to automatically detect reposts on
  [Reddit](www.redditcom), and to link back to the original post.
 
-This bot will post on the following subreddits:
-  * [Test](https://www.reddit.com/r/test)
+This bot is currently running on the following subreddits:
+  * None
